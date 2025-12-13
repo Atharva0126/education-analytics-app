@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from data.education_data import load_data
+from data.education_data import load_student_master, load_student_performance
 
 # Page config (Professional UI)
 st.set_page_config(
@@ -11,7 +11,8 @@ st.set_page_config(
 )
 
 # Load data
-df = load_data()
+df_master = load_student_master()
+df_performance = load_student_performance()
 
 # App Title
 st.markdown(
@@ -21,7 +22,25 @@ st.markdown(
 st.markdown("---")
 
 # Sidebar Filters
-st.sidebar.header("🔎 Filter Data")
+st.sidebar.header("🔎 Filter Data & 🔗 Data Join & Merge Demonstration")
+
+option = st.selectbox(
+    "Select Operation",
+    ["Inner Merge", "Left Merge", "Right Merge", "Join", "Concat (Vertical)", "Concat (Horizontal)"]
+)
+
+if option == "Inner Merge":
+    st.dataframe(df_merge_inner)
+elif option == "Left Merge":
+    st.dataframe(df_merge_left)
+elif option == "Right Merge":
+    st.dataframe(df_merge_right)
+elif option == "Join":
+    st.dataframe(df_join)
+elif option == "Concat (Vertical)":
+    st.dataframe(df_concat_vertical)
+elif option == "Concat (Horizontal)":
+    st.dataframe(df_concat_horizontal)
 
 course_filter = st.sidebar.multiselect(
     "Select Course",
@@ -39,6 +58,44 @@ filtered_df = df[
     (df["Course"].isin(course_filter)) &
     (df["Gender"].isin(gender_filter))
 ]
+
+df_merge_inner = pd.merge(
+    df_master,
+    df_performance,
+    on="Student_ID",
+    how="inner"
+)
+
+df_merge_left = pd.merge(
+    df_master,
+    df_performance,
+    on="Student_ID",
+    how="left"
+)
+
+df_merge_right = pd.merge(
+    df_master,
+    df_performance,
+    on="Student_ID",
+    how="right"
+)
+
+df_join = df_master.set_index("Student_ID").join(
+    df_performance.set_index("Student_ID"),
+    how="inner"
+)
+
+df_concat_vertical = pd.concat(
+    [df_master, df_master],
+    axis=0,
+    ignore_index=True
+)
+
+df_concat_horizontal = pd.concat(
+    [df_master, df_performance],
+    axis=1
+)
+
 
 # KPI Section
 col1, col2, col3, col4 = st.columns(4)
