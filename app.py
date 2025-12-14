@@ -101,9 +101,8 @@ operation = st.selectbox(
         "Left Merge",
         "Right Merge",
         "Join",
-        "Concat (Vertical)",
-        "Concat (Horizontal)",
-        "Left Merge (NaN Handled)"
+        "Concat",
+        
     ]
 )
 
@@ -126,7 +125,7 @@ elif operation == "Join":
     st.subheader("🔑 JOIN (Index-Based)")
     st.dataframe(df_join, use_container_width=True)
 
-elif operation == "Concat (Vertical)":
+elif operation == "Concat":
     st.subheader("⬇️ CONCAT – VERTICAL (UNION ALL)")
     st.dataframe(df_concat_vertical, use_container_width=True)
 
