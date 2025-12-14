@@ -13,10 +13,33 @@ st.set_page_config(
 st.title("🎓 Education Data – Join, Merge & Concat Dashboard")
 
 # =========================
-# LOAD DATA
+# LOAD RAW DATA
 # =========================
 df_master = load_student_master()
 df_performance = load_student_performance()
+
+# =========================
+# RAW DATA VIEW (DEFAULT)
+# =========================
+st.subheader("📌 Raw Data Tables")
+
+show_raw_data = st.checkbox(
+    "Show / Hide Raw Data Tables",
+    value=True
+)
+
+if show_raw_data:
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("### 🧑 Student Master Table")
+        st.dataframe(df_master, use_container_width=True)
+
+    with col2:
+        st.markdown("### 📊 Student Performance Table")
+        st.dataframe(df_performance, use_container_width=True)
+
+st.divider()
 
 # =========================
 # SIDEBAR FILTERS
@@ -24,28 +47,28 @@ df_performance = load_student_performance()
 st.sidebar.header("🔎 Filters")
 
 selected_gender = st.sidebar.multiselect(
-    "Select Gender",
+    "Gender",
     options=df_master["Gender"].unique(),
     default=df_master["Gender"].unique()
 )
 
 selected_institute = st.sidebar.multiselect(
-    "Select Institute",
+    "Institute",
     options=df_master["Institute"].unique(),
     default=df_master["Institute"].unique()
 )
 
 selected_course = st.sidebar.multiselect(
-    "Select Course",
+    "Course",
     options=df_performance["Course"].unique(),
     default=df_performance["Course"].unique()
 )
 
 score_range = st.sidebar.slider(
-    "Select Score Range",
-    int(df_performance["Score"].min()),
-    int(df_performance["Score"].max()),
-    (0, 100)
+    "Score Range",
+    min_value=int(df_performance["Score"].min()),
+    max_value=int(df_performance["Score"].max()),
+    value=(int(df_performance["Score"].min()), int(df_performance["Score"].max()))
 )
 
 # =========================
@@ -62,22 +85,11 @@ filtered_performance = df_performance[
 ]
 
 # =========================
-# CREATE OPERATIONS
+# DATA OPERATIONS
 # =========================
-df_merge_inner = pd.merge(
-    filtered_master, filtered_performance,
-    on="Student_ID", how="inner"
-)
-
-df_merge_left = pd.merge(
-    filtered_master, filtered_performance,
-    on="Student_ID", how="left"
-)
-
-df_merge_right = pd.merge(
-    filtered_master, filtered_performance,
-    on="Student_ID", how="right"
-)
+df_merge_inner = pd.merge(filtered_master, filtered_performance, on="Student_ID", how="inner")
+df_merge_left = pd.merge(filtered_master, filtered_performance, on="Student_ID", how="left")
+df_merge_right = pd.merge(filtered_master, filtered_performance, on="Student_ID", how="right")
 
 df_join = filtered_master.set_index("Student_ID").join(
     filtered_performance.set_index("Student_ID"),
@@ -90,19 +102,34 @@ df_concat_vertical = pd.concat(
     ignore_index=True
 )
 
+df_concat_horizontal = pd.concat(
+    [
+        filtered_master.reset_index(drop=True),
+        filtered_performance.reset_index(drop=True)
+    ],
+    axis=1
+)
+
+df_left_merge_filled = df_merge_left.fillna({
+    "Course": "Not Enrolled",
+    "Score": 0
+})
 
 # =========================
 # OPERATION SELECTOR
 # =========================
+st.subheader("🔄 Data Operations")
+
 operation = st.selectbox(
-    "📌 Select Data Operation",
+    "Select Operation",
     [
         "Inner Merge",
         "Left Merge",
         "Right Merge",
         "Join",
-        "Concat",
-        
+        "Concat (Vertical)",
+        "Concat (Horizontal)",
+        "Left Merge (NaN Handled)"
     ]
 )
 
@@ -110,24 +137,25 @@ operation = st.selectbox(
 # DISPLAY RESULTS
 # =========================
 if operation == "Inner Merge":
-    st.subheader("🔗 INNER MERGE")
     st.dataframe(df_merge_inner, use_container_width=True)
 
 elif operation == "Left Merge":
-    st.subheader("⬅️ LEFT MERGE")
     st.dataframe(df_merge_left, use_container_width=True)
 
 elif operation == "Right Merge":
-    st.subheader("➡️ RIGHT MERGE")
     st.dataframe(df_merge_right, use_container_width=True)
 
 elif operation == "Join":
-    st.subheader("🔑 JOIN (Index-Based)")
     st.dataframe(df_join, use_container_width=True)
 
-elif operation == "Concat":
-    st.subheader("⬇️ CONCAT – VERTICAL (UNION ALL)")
+elif operation == "Concat (Vertical)":
     st.dataframe(df_concat_vertical, use_container_width=True)
+
+elif operation == "Concat (Horizontal)":
+    st.dataframe(df_concat_horizontal, use_container_width=True)
+
+elif operation == "Left Merge (NaN Handled)":
+    st.dataframe(df_left_merge_filled, use_container_width=True)
 
 # =========================
 # FOOTER
