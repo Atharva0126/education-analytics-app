@@ -96,24 +96,15 @@ df_join = filtered_master.set_index("Student_ID").join(
     how="inner"
 )
 
-df_concat_vertical = pd.concat(
+df_concat = pd.concat(
     [filtered_performance, filtered_performance],
     axis=0,
     ignore_index=True
 )
 
-df_concat_horizontal = pd.concat(
-    [
-        filtered_master.reset_index(drop=True),
-        filtered_performance.reset_index(drop=True)
-    ],
-    axis=1
-)
 
-df_left_merge_filled = df_merge_left.fillna({
-    "Course": "Not Enrolled",
-    "Score": 0
-})
+
+
 
 # =========================
 # OPERATION SELECTOR
@@ -127,9 +118,7 @@ operation = st.selectbox(
         "Left Merge",
         "Right Merge",
         "Join",
-        "Concat (Vertical)",
-        "Concat (Horizontal)",
-        "Left Merge (NaN Handled)"
+        "Concat"
     ]
 )
 
@@ -148,14 +137,10 @@ elif operation == "Right Merge":
 elif operation == "Join":
     st.dataframe(df_join, use_container_width=True)
 
-elif operation == "Concat (Vertical)":
-    st.dataframe(df_concat_vertical, use_container_width=True)
+elif operation == "Concat":
+    st.dataframe(df_concat, use_container_width=True)
 
-elif operation == "Concat (Horizontal)":
-    st.dataframe(df_concat_horizontal, use_container_width=True)
 
-elif operation == "Left Merge (NaN Handled)":
-    st.dataframe(df_left_merge_filled, use_container_width=True)
 
 # =========================
 # FOOTER
